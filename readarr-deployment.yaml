@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: readarr
+  labels:
+    app: readarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: readarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: readarr
+    spec:
+      #hostNetwork: true
+#      affinity:
+#        nodeAffinity:
+#          requiredDuringSchedulingIgnoredDuringExecution:
+#            nodeSelectorTerms:
+#            - matchExpressions:
+#              - key: multicore
+#                operator: NotIn
+#                values:
+#                - "true"
+      containers:
+      - name: readarr
+        imagePullPolicy: "IfNotPresent"
+        image: lscr.io/linuxserver/readarr:develop
+        ports:
+        - name: http
+          containerPort: 8787
+          protocol: TCP
+        env:
+        - name: TZ
+          value: "America/Denver"
+        - name: PUID
+          value: "888"
+        - name: GUID
+          value: "321"
+        - name: UMASK_SET
+          value: "022"
+        volumeMounts:
+        - name: synology-readarr
+          mountPath: /config
+          subPath: readarr/config
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: synology-readarr
+        persistentVolumeClaim:
+          claimName: synology-readarr
+      - name: data
+        persistentVolumeClaim:
+          claimName: synology-data
